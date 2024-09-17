@@ -1,0 +1,35 @@
+model:
+  input_size: 28
+  hidden_size: 128
+  output_size: 64
+  distance_metric: "L2"
+
+running:
+  random_seed: 42
+  learning_rate: 0.0001
+  epochs: 1000
+  batch_size: 32
+  shuffle_data: True
+  workers: 2
+  num_runs: 100
+  feat_dim: 512
+  k_shot: 1
+  model_name: "siamese"
+
+datasets:
+  dataset_path: "data/"
+  dataset_name: "OlivettiFaces"
+
+checkpoints:
+  save_model: True
+  checkpoint_dir: "checkpoints/"
+
+device:
+  use_gpu: False
+  gpu_device: "cuda:0"
+
+log:
+  save_log: False
+  log_path: "logs/"
+  log_file: "execution.log"
+  verbose_level: 2
