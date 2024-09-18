@@ -2,12 +2,19 @@ import argparse
 import yaml
 
 class Parser:
+  """
+  Parser class for handling command-line arguments and configuration files for the Siamese Network One-Shot Learning.
+  """
 
   def __init__(self):
+    """
+    Initializes the argument parser for the Siamese Network One-Shot Learning with dynamic parameters.
+    The parsed arguments are stored in the `self.args` attribute.
+    """
     parser = argparse.ArgumentParser(description='Siamese Network One-Shot Learning with dynamic parameters')
 
     # config file path
-    parser.add_argument('-c', '--config', type=str, help='Config file path', default='config/default_config.yaml',)
+    parser.add_argument('-c', '--config', type=str, help='Config file path', default='config/default.yaml',)
 
     # model parameters
     model_group = parser.add_argument_group('Model')
@@ -53,25 +60,50 @@ class Parser:
 
     self.args = parser.parse_args()
 
-
   def loader(self):
+    """
+    Loads a YAML configuration file specified in the `self.args.config` attribute.
+
+    Returns:
+      dict: The contents of the YAML file as a dictionary.
+
+    Raises:
+      FileNotFoundError: If the file specified in `self.args.config` does not exist.
+      yaml.YAMLError: If there is an error parsing the YAML file.
+    """
     with open(self.args.config, 'r') as file:
-      config = yaml.safe_load(file)
-    return config
-
-
-  def update(self, config, key, value):
-    for section in config:
-      if key in config[section]:
-        config[section][key] = value
-    return config
-
+      loaded_file = yaml.safe_load(file)
+    return loaded_file
 
   def merge(self, config):
-    args_dict = vars(self.args)
+    """
+    Merges the current argument values into the provided configuration dictionary.
 
+    Args:
+      config (dict): The configuration dictionary to be updated.
+
+    Returns:
+      dict: The updated configuration dictionary with the current argument values.
+    """
+    args_dict = vars(self.args)
     for key, value in args_dict.items():
       if value is not None:
         config = self.update(config, key.split('--')[-1], value)
+    return config
 
+  def update(self, config, key, value):
+    """
+    Update the value of a specified key in a configuration dictionary.
+
+    Args:
+      config (dict): The configuration dictionary where the key-value pair needs to be updated.
+      key (str): The key whose value needs to be updated.
+      value: The new value to be assigned to the specified key.
+
+    Returns:
+      dict: The updated configuration dictionary.
+    """
+    for section in config:
+      if key in config[section]:
+        config[section][key] = value
     return config
