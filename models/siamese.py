@@ -1,7 +1,7 @@
 
 import torch.nn as nn
 
-class SiameseNetwork(nn.Module):
+class Siamese(nn.Module):
   """
   Siamese Network.
   """
@@ -10,7 +10,8 @@ class SiameseNetwork(nn.Module):
     """
     Initialize the Siamese Network.
     """
-    super(SiameseNetwork, self).__init__()
+
+    super(Siamese, self).__init__()
 
     self.cnn1 = nn.Sequential(
       nn.Conv2d(1, 96, kernel_size=11, stride=4),

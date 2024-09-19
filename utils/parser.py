@@ -1,7 +1,7 @@
 import argparse
 import yaml
 
-class Parser:
+class Parser():
   """
   Parser class for handling command-line arguments and configuration files for the Siamese Network One-Shot Learning.
   """
@@ -11,6 +11,9 @@ class Parser:
     Initializes the argument parser for the Siamese Network One-Shot Learning with dynamic parameters.
     The parsed arguments are stored in the `self.args` attribute.
     """
+
+    super(Parser, self).__init__()
+
     parser = argparse.ArgumentParser(description='Siamese Network One-Shot Learning with dynamic parameters')
 
     # config file path
