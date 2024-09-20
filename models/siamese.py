@@ -1,5 +1,5 @@
-
 import torch.nn as nn
+
 
 class Siamese(nn.Module):
   """
@@ -30,6 +30,7 @@ class Siamese(nn.Module):
       nn.Linear(384, feat_dim),
     )
 
+
   def forward_once(self, x):
     """
     Forward pass once.
@@ -40,10 +41,12 @@ class Siamese(nn.Module):
     Returns:
     - Output.
     """
+
     output = self.cnn1(x)
     output = output.view(output.size()[0], -1) # batches x feat_dim
     output = self.fc1(output)
     return output
+
 
   def forward(self, input1, input2):
     """
@@ -57,6 +60,7 @@ class Siamese(nn.Module):
     - Output1.
     - Output2.
     """
+
     output1 = self.forward_once(input1)
     output2 = self.forward_once(input2)
     return output1, output2

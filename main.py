@@ -1,106 +1,74 @@
-# import random
-# from matplotlib import transforms
-# import numpy as np
-# import torch
-from data.dataset import Dataset
-# from loaders.evaluate import EvaluateLoader
-# from loaders.train import TrainLoader
-# from models.siamese import Siamese
-# from torch.utils.data import DataLoader
-# from steps.evaluate import Evaluate
-# from steps.train import Train
-# from utils.loss import ContrastiveLoss
-# from torch import optim
+import random
+import numpy as np
+import torch
+from data.data import Data
+from loaders.eval import EvalDataset
+from loaders.train import TrainDataset
+from models.siamese import Siamese
+from steps.evaluator import Evaluator
+from steps.train import Train
+from utils.loss import ContrastiveLoss
+from utils.params import Params
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+from torch import optim
 
-# SEED = 42
-#   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-#   torch.manual_seed(SEED)
-#   np.random.seed(SEED)
-#   random.seed(SEED)
-
-#   feat_dim = 128
-#   learning_rate = 0.0001
-#   num_epochs = 1000
-#   batch_size = 32
-#   num_workers = 2 # for parallel processing
-#   num_runs = 100 # number of evaluations for validation/test
-
-#   transformation = transforms.Compose([transforms.Resize((100, 100))])
-
-#   train_dataset = TrainLoader(X=X_train, y=y_train, transform=transformation)
-#   train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=num_workers, batch_size=batch_size)
-
-#   val_dataset = EvaluateLoader(X=X_val, y=y_val, transform=transformation)
-#   val_dataloader = DataLoader(val_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
-
-#   test_dataset = EvaluateLoader(X=X_test, y=y_test, transform=transformation)
-#   test_dataloader = DataLoader(test_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
-
-#   model = Siamese(feat_dim=feat_dim).to(device)
-#   criterion = ContrastiveLoss()
-#   optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-#   # evaluator = Evaluate(labels=y_val, k_shot=1, num_runs=num_runs, device=device)
-
-#   # treinamento
-#   training = Train()
-#   best_epoch, best_accuracy, best_loss_history, loss_history, accuracy_history = training(model, train_dataloader, val_dataloader, num_epochs=num_epochs, criterion=criterion, optimizer=optimizer, device=device)
-#   print(f"Best Epoch {best_epoch} Best Accuracy {best_accuracy:3f}")
-#   training.chart(loss_history, accuracy_history, num_epochs)
-
-#   # avaliação'
-#   model.load_state_dict(torch.load("best-model.pth", weights_only=True))
-#   evaluator = Evaluate(labels=y_test, k_shot=1, num_runs=num_runs, device=device)
-#   accuracy = evaluator.eval(model, test_dataloader, k=1)
-#   print(f"Accuracy: {accuracy}")
 
 def main():
-  # 1. load params from yaml file
-  # 2. load dataset
+  params = Params().args
 
-  dataset = Dataset().load()
-  print(dataset)
+  SEED = params.random_seed
+  torch.manual_seed(SEED)
+  np.random.seed(SEED)
+  random.seed(SEED)
+
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+  feat_dim = 128 #params.feat_dim
+  learning_rate = params.learning_rate
+  epochs = params.epochs
+  batch_size = params.batch_size
+  shuffle_data = params.shuffle_data
+  num_workers = params.num_workers
+  num_runs = params.num_runs
+  feat_dim = params.feat_dim
+  k_shot = params.k_shot
+  model_name = params.model_name
+
+  data = Data()
+  X_train, y_train, X_val, y_val, X_test, y_test = data.split()
+  data.plot(y_train=y_train, y_val=y_val, y_test=y_test)
+
+  transformation = transforms.Compose([transforms.Resize((100, 100))])
+
+  train_dataset = TrainDataset(X=X_train, y=y_train, transform=transformation)
+  train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=num_workers, batch_size=batch_size)
+
+  val_dataset = EvalDataset(X=X_val, y=y_val, transform=transformation)
+  val_dataloader = DataLoader(val_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
+
+  test_dataset = EvalDataset(X=X_test, y=y_test, transform=transformation)
+  test_dataloader = DataLoader(test_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
+
+  model = Siamese(feat_dim=feat_dim).to(device)
+  criterion = ContrastiveLoss()
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+
+  # treinamento
+  train_evaluator = Evaluator(labels=y_val, k_shot=k_shot, num_runs=num_runs, device=device)
+  best_epoch, best_accuracy, loss_history, accuracy_history = Train.execution(
+    model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, num_epochs=epochs, criterion=criterion, optimizer=optimizer, device=device, evaluator=train_evaluator, k_shot=k_shot)
+  print(f"Best Epoch {best_epoch} Best Accuracy {best_accuracy:3f}")
+  Train.chart(epochs, loss_history, accuracy_history)
+
+
+  # avaliação
+  model.load_state_dict(torch.load("checkpoints/best-model.pth", weights_only=True))
+  evaluator = Evaluator(labels=y_test, k_shot=k_shot, num_runs=num_runs, device=device)
+  accuracy = evaluator.eval(model=model, test_dataloader=test_dataloader, k=k_shot)
+  print(f"Accuracy: {accuracy}")
+
 
 if __name__ == "__main__":
   main()
-
-
-
-# def main(hparams):
-#     """
-#     Main training routine specific for this project
-#     :param hparams:
-#     """
-#     # ------------------------
-#     # 1 INIT LIGHTNING MODEL
-#     # ------------------------
-#     model = Model(hparams)
-
-#     # ------------------------
-#     # 2 INIT TRAINER
-#     # ------------------------
-#     trainer = Trainer()
-
-#     # ------------------------
-#     # 3 START TRAINING
-#     # ------------------------
-#     trainer.fit(model)
-
-
-# if __name__ == '__main__':
-    # ------------------------
-    # TRAINING ARGUMENTS
-    # ------------------------
-    # these are project-wide arguments
-    # root_dir = os.path.dirname(os.path.realpath(__file__))
-    # parent_parser = ArgumentParser(add_help=False)
-
-    # each LightningModule defines arguments relevant to it
-    # parser = Model.add_model_specific_args(parent_parser, root_dir)
-    # hyperparams = parser.parse_args()
-
-    # ---------------------
-    # RUN TRAINING
-    # ---------------------
-    # main(hyperparams)

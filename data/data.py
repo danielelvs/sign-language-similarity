@@ -1,53 +1,42 @@
 import os
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
 
 
-class Dataset:
-
-  @property
-  def X(self):
-    return self._X
-
-  @X.setter
-  def X(self, value):
-    self._X = value
-
-  @property
-  def y(self):
-    return self._y
-
-  @y.setter
-  def y(self, value):
-    self._y = value
-
+class Data:
+  """
+  Dataset class for handling and processing datasets.
+  """
 
   def __init__(self, folder="data", dataset="OlivettiFaces"):
+    """
+    Initializes the dataset object with the specified folder and dataset name.
+
+    Args:
+      folder (str): The folder where the dataset is located. Default is "data".
+      dataset (str): The name of the dataset. Default is "OlivettiFaces".
+    """
+
     self.folder = folder
     self.dataset = dataset
     self.path = os.path.join(self.folder, self.dataset)
 
 
-  def load(self):
-    X_file_path = f"{self.path}/X.npy"
-    y_file_path = f"{self.path}/y.npy"
-
-    self.X = np.load(X_file_path, allow_pickle=True)
-    self.y = np.load(y_file_path, allow_pickle=True)
-
-    H = W = int(np.sqrt(self.X.shape[1]))
-    self.X = self.X.reshape(-1, H, W)
-
-    print(f"#samples={self.X.shape[0]} min/max={self.X.min()}/{self.X.max()}")
-    print(f"image size={H}x{W}")
-    print(f"#classes={len(np.unique(self.y))}")
-
-    return self.X, self.y
-
-
   def split(self):
-    classes = np.unique(self.y) # identify unique classes
+
+    X = np.load(f"{self.path}/X.npy", allow_pickle=True)
+    y = np.load(f"{self.path}/y.npy", allow_pickle=True)
+    H = W = int(np.sqrt(X.shape[1]))
+    X = X.reshape(-1, H, W)
+
+    print(f"#samples={X.shape[0]} min/max={X.min()}/{X.max()}")
+    print(f"image size={H}x{W}")
+    print(f"#classes={len(np.unique(y))}")
+
+    #----------------------------------------------
+
+    classes = np.unique(y)
     num_classes = len(classes)
 
     # Split size
@@ -56,14 +45,14 @@ class Dataset:
     num_classes_train = num_classes - num_classes_test - num_classes_val
 
     # Dataset
-    self.X = self.X.astype(np.float32)
-    self.y = self.y.astype(int)
+    X = X.astype(np.float32)
+    y = y.astype(int)
 
     # Shuffle dataset
-    indices = np.arange(len(self.y))
+    indices = np.arange(len(y))
     np.random.shuffle(indices)
-    self.X = self.X[indices]
-    self.y = self.y[indices]
+    X = X[indices]
+    y = y[indices]
 
     # Split classes
     train_classes = np.random.choice(classes, num_classes_train, replace=False) # select random classes for training
@@ -78,13 +67,13 @@ class Dataset:
     print(f"val_classes={val_classes}")
     print(f"test_classes={test_classes}")
 
-    train_idx = np.isin(self.y, train_classes)
-    val_idx = np.isin(self.y, val_classes)
-    test_idx = np.isin(self.y, test_classes)
+    train_idx = np.isin(y, train_classes)
+    val_idx = np.isin(y, val_classes)
+    test_idx = np.isin(y, test_classes)
 
-    X_train, y_train = self.X[train_idx], self.y[train_idx]
-    X_val, y_val = self.X[val_idx], self.y[val_idx]
-    X_test, y_test = self.X[test_idx], self.y[test_idx]
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_val, y_val = X[val_idx], y[val_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
 
     print(f"X_train={X_train.shape}")
     print(f"y_train={y_train.shape}")
@@ -100,7 +89,21 @@ class Dataset:
     np.save(os.path.join(self.path, "X_test.npy"), X_test)
     np.save(os.path.join(self.path, "y_test.npy"), y_test)
 
-    # Plot validation samples distribution by class
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+  def plot(self, y_train, y_val, y_test):
+    """
+    Plots the distribution of training, validation, and test samples by class.
+    This method creates a bar plot showing the count of samples for each class
+    in the training, validation, and test datasets. The x-axis represents the
+    class labels, and the y-axis represents the count of samples. The plot
+    includes a legend to differentiate between the training, validation, and
+    test datasets.
+    Returns:
+      None
+    """
+
     counter_train, counter_val, counter_test = Counter(y_train), Counter(y_val), Counter(y_test)
     plt.bar(counter_train.keys(), counter_train.values(), label='train')
     plt.bar(counter_val.keys(), counter_val.values(), label='val')
