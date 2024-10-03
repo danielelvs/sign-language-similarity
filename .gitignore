@@ -161,11 +161,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-X_train.npy
-y_train.npy
-X_test.npy
-y_test.npy
-X_val.npy
-y_val.npy
-
 .vscode/
+checkpoints/
+data/
+output/

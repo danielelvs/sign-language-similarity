@@ -53,7 +53,11 @@ class Train:
 			if accuracy > best_accuracy:
 				best_accuracy = accuracy
 				best_epoch = epoch
-				torch.save(model.state_dict(), "best-model.pth")
+
+				if not os.path.exists("../checkpoints"):
+					os.mkdir(category_path)
+
+				torch.save(model.state_dict(), "checkpoints/best-model.pth")
 
 		return best_epoch, best_accuracy, loss_history, accuracy_history
 

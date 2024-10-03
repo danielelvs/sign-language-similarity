@@ -22,6 +22,8 @@ class Data:
     self.dataset = dataset
     self.path = os.path.join(self.folder, self.dataset)
 
+  def __getitem__(self, index):
+    pass
 
   def split(self):
 
@@ -92,7 +94,7 @@ class Data:
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-  def plot(self, y_train, y_val, y_test):
+  def samples(self, y_train, y_val, y_test):
     """
     Plots the distribution of training, validation, and test samples by class.
     This method creates a bar plot showing the count of samples for each class
