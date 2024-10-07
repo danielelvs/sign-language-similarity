@@ -162,6 +162,6 @@ cython_debug/
 #.idea/
 
 .vscode/
-checkpoints/
-data/
+checkpoints/**
+datasets/**
 output/
