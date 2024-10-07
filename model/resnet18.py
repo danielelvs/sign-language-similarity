@@ -1,10 +1,10 @@
 from torch import nn
 from torchvision.models import resnet18
 
-from networks.base import BaseNetwork
+from model.base import BaseModel
 
 
-class Resnet18Network(BaseNetwork):
+class Resnet18Model(BaseModel):
     name = "resnet18"
     model = None
     transforms = None

@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 
 
-class TrainingDataset(Dataset):
+class TrainingData(Dataset):
 
     def __init__(self, X, y, size=None, transform=None):
         self.X = X

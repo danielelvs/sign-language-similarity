@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseNetwork(ABC):
+class BaseModel(ABC):
     name: str
     image_size: tuple
 
@@ -27,5 +27,5 @@ class BaseNetwork(ABC):
 
     @staticmethod
     def get_by_name(name):
-        classes = {cls.name: cls for cls in BaseNetwork.__subclasses__()}
+        classes = {cls.name: cls for cls in BaseModel.__subclasses__()}
         return classes.get(name)

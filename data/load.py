@@ -1,3 +1,5 @@
+import logging
+import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -5,16 +7,19 @@ import pandas as pd
 from PIL import Image
 import re
 
+from utils.logs import Logs
+
 
 class Data(Dataset):
 
-	def __init__(self, data, dataset_name='minds', transform=None):
+	def __init__(self, dataset, dataset_name='minds', representation='Skeleton-DML', transform=None):
 		self.dataset_name = dataset_name
 		self.transform = transform
-		self.signs = self.get_signs(data)
-		self.dataframe = self.prepare_data(data)
+		self.signs = self.get_signs(dataset)
+		self.dataframe = self.prepare_data(dataset)
 		self.categories = list(self.dataframe["category"].unique())
 		self.persons = list(self.dataframe["person"].unique())
+		self.representation = representation
 
 
 	def __len__(self):
@@ -25,13 +30,25 @@ class Data(Dataset):
 		dataframe = self.dataframe.iloc[idx]
 		x, y, category, person = dataframe["x"], dataframe["y"], dataframe["category"], dataframe["person"]
 
-		image = self.skeleton_dml(x, y)
+		image = self.representation(x, y)
 		image = Image.fromarray(np.uint8(image * 255)).convert('RGB')
 
 		if self.transform is not None:
 			image = self.transform(image)
 
 		return image, torch.tensor(self.categories.index(category), dtype=torch.int64), torch.tensor(self.persons.index(person), dtype=torch.int64)
+
+
+	def get_dataset(self):
+		try:
+			Logs(logging.INFO, f"Loading dataset {self.dataset_name}...")
+			dataset_file = f"libras_{self.dataset_name}_openpose.csv"
+			dataset_path = os.path.join(f"datasets/{self.dataset_name}", dataset_file)
+
+			return pd.read_csv(dataset_path, low_memory=True)
+		except FileNotFoundError as e:
+			Logs(logging.ERROR, f"Dataset {self.dataset_name} not found. Error: {e}")
+			return None
 
 
 	def get_features(self):
@@ -56,7 +73,8 @@ class Data(Dataset):
 
 	def prepare_data(self, df):
 		if (self.dataset_name == "minds"):
-			df["person"] = df["video_name"].apply(lambda i: int(re.findall(r".*Sinalizador(\d+)-.+.mp4", i)[0]))
+			if "person" not in df.columns:
+				df["person"] = df["video_name"].apply(lambda i: int(re.findall(r".*Sinalizador(\d+)-.+.mp4", i)[0]))
 
 		columns = ["category", "video_name", "person", "frame"] + self.signs
 		df = df[columns]

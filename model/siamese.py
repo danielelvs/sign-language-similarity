@@ -1,9 +1,9 @@
 import torch.nn as nn
 
-from networks.base import BaseNetwork
+from model.base import BaseModel
 
 
-class SiameseNetwork(nn.Module, BaseNetwork):
+class SiameseNetwork(nn.Module, BaseModel):
     name = "siamese"
     model = None
     transforms = None

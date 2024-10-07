@@ -1,11 +1,11 @@
 import argparse
 
 
-class Params:
+class Args:
 
 	def __init__(self):
 
-		super(Params, self).__init__()
+		super(Args, self).__init__()
 
 		parser = argparse.ArgumentParser(description='Sign Language Similarity Params')
 

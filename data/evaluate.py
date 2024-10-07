@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset
 
 
-class EvaluateDataset(Dataset):
+class EvaluateData(Dataset):
 
     def __init__(self, X, y, transform=None):
         self.X = X
