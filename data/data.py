@@ -12,9 +12,9 @@ from utils.logs import Logs
 
 class Data(Dataset):
 
-	def __init__(self, dataset, dataset_name='minds', representation='Skeleton-DML', transform=None):
+	def __init__(self, dataset, dataset_name='minds', representation='Skeleton-DML'): #, transform=None):
 		self.dataset_name = dataset_name
-		self.transform = transform
+		# self.transform = transform
 		self.signs = self.get_signs(dataset)
 		self.dataframe = self.prepare_data(dataset)
 		self.categories = list(self.dataframe["category"].unique())
@@ -33,8 +33,8 @@ class Data(Dataset):
 		image = self.representation(x, y)
 		image = Image.fromarray(np.uint8(image * 255)).convert('RGB')
 
-		if self.transform is not None:
-			image = self.transform(image)
+		# if self.transform is not None:
+		# 	image = self.transform(image)
 
 		return image, torch.tensor(self.categories.index(category), dtype=torch.int64), torch.tensor(self.persons.index(person), dtype=torch.int64)
 

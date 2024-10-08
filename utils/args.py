@@ -13,11 +13,11 @@ class Args:
 		dataset_group.add_argument('-dp', '--dataset_path', type=str, help='Dataset path', default='dataset/')
 		dataset_group.add_argument('-dn', '--dataset_name', type=str, help='Dataset name', default='minds')
 
-		network_group = parser.add_argument_group('Network')
-		network_group.add_argument('-is', '--input_size', type=int, help="Input size of the model", default=28)
-		network_group.add_argument('-hs', '--hidden_size', type=int, help="Hidden layer size", default=128)
-		network_group.add_argument('-os', '--output_size', type=int, help="Output embeddings vector size", default=64)
-		network_group.add_argument('-nt', '--network_name', type=str, help='Network name', choices=['resnet18', 'resnet50', 'siamese'], default='siamese')
+		model_group = parser.add_argument_group('Model')
+		model_group.add_argument('-is', '--input_size', type=int, help="Input size of the model", default=28)
+		model_group.add_argument('-hs', '--hidden_size', type=int, help="Hidden layer size", default=128)
+		model_group.add_argument('-os', '--output_size', type=int, help="Output embeddings vector size", default=64)
+		model_group.add_argument('-mn', '--network_name', type=str, help='Model name', choices=['resnet18', 'resnet50', 'siamese'], default='siamese')
 
 		execution_group = parser.add_argument_group('Execution')
 		execution_group.add_argument('-rs', '--random_seed', type=int, help="Random seed", default=42)

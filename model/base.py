@@ -11,7 +11,7 @@ class BaseModel(ABC):
 
 
     @abstractmethod
-    def get_network(self):
+    def get_model(self):
         pass
 
 
@@ -26,6 +26,6 @@ class BaseModel(ABC):
 
 
     @staticmethod
-    def get_by_name(name):
+    def get_name(name):
         classes = {cls.name: cls for cls in BaseModel.__subclasses__()}
         return classes.get(name)

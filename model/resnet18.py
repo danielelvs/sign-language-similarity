@@ -12,7 +12,7 @@ class Resnet18Model(BaseModel):
 
 
     def __init__(self, num_classes: int):
-        super().__init__(num_classes)
+        super(Resnet18Model, self).__init__(num_classes)
 
         self.model = resnet18(pretrained=True)
 

@@ -43,7 +43,7 @@ class Evaluate:
 			self.query_idxs.append(query_idxs)
 
 
-	def __call__(self, model, dataloader, k=3) -> float:
+	def exec(self, model, dataloader, k=3) -> float:
 		"""
 		Evaluate the model using k-Nearest Neighbors (k-NN) classification.
 		Args:

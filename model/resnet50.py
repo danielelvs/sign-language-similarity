@@ -4,7 +4,7 @@ from torchvision.models import resnet50
 from model.base import BaseModel
 
 
-class Resnet50Network(BaseModel):
+class Resnet50Model(BaseModel):
     name = "resnet50"
     model = None
     transforms = None
@@ -12,7 +12,7 @@ class Resnet50Network(BaseModel):
 
 
     def __init__(self, num_classes: int):
-        super().__init__(num_classes)
+        super(Resnet50Model, self).__init__(num_classes)
 
         self.model = resnet50(pretrained=True)
         self.model.head = nn.Sequential(

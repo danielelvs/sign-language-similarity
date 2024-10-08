@@ -3,7 +3,7 @@ import torch.nn as nn
 from model.base import BaseModel
 
 
-class SiameseNetwork(nn.Module, BaseModel):
+class SiameseModel(nn.Module, BaseModel):
     name = "siamese"
     model = None
     transforms = None
@@ -11,9 +11,9 @@ class SiameseNetwork(nn.Module, BaseModel):
 
 
     def __init__(self, feat_dim=512):
-        super(SiameseNetwork, self).__init__()
+        super(SiameseModel, self).__init__()
 
-        self.model.cnn1 = nn.Sequential(
+        self.model = nn.Sequential(
             nn.Conv2d(1, 96, kernel_size=11, stride=4),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(3, stride=2),

@@ -11,6 +11,6 @@ class BaseRepresentation(ABC):
 
 
     @staticmethod
-    def get_by_name(name):
+    def get_type(name):
         classes = {cls.name: cls for cls in BaseRepresentation.__subclasses__()}
         return classes.get(name)

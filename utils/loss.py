@@ -8,6 +8,7 @@ class ContrastiveLoss(nn.Module):
 
 
   def __init__(self, margin=2.0):
+
     super(ContrastiveLoss, self).__init__()
 
     self.margin = margin

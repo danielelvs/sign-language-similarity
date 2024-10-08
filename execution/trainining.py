@@ -51,7 +51,7 @@ class Training:
 				best_epoch = epoch
 
 				if not os.path.exists("../checkpoints"):
-					os.mkdir(category_path)
+					os.mkdir("/checkpoints")
 
 				torch.save(model.state_dict(), "checkpoints/best-model.pth")
 
