@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from torchvision import transforms
 import pandas as pd
 from PIL import Image
 import re
@@ -12,39 +13,35 @@ from utils.logs import Logs
 
 class Data(Dataset):
 
-	def __init__(self, dataset, dataset_name='minds', representation='Skeleton-DML'): #, transform=None):
+	def __init__(self, dataset_name='minds', image_method=None):
 		self.dataset_name = dataset_name
-		# self.transform = transform
-		self.signs = self.get_signs(dataset)
-		self.dataframe = self.prepare_data(dataset)
+		self.dataset = self.get_dataset()
+		self.signs = self.get_signs(self.dataset)
+		self.dataframe = self.prepare_data(self.dataset)
 		self.categories = list(self.dataframe["category"].unique())
 		self.persons = list(self.dataframe["person"].unique())
-		self.representation = representation
+		self.image_method = image_method
+		self.transform = transforms.ToTensor()  # Definir a transformação para tensor
 
 
 	def __len__(self):
 		return len(self.dataframe)
 
 
-	def __getitem__(self, idx):
-		dataframe = self.dataframe.iloc[idx]
+	def __getitem__(self, index):
+		dataframe = self.dataframe.iloc[index]
 		x, y, category, person = dataframe["x"], dataframe["y"], dataframe["category"], dataframe["person"]
 
-		image = self.representation(x, y)
+		image = self.image_method().transform(x, y)
 		image = Image.fromarray(np.uint8(image * 255)).convert('RGB')
 
-		# if self.transform is not None:
-		# 	image = self.transform(image)
-
-		return image, torch.tensor(self.categories.index(category), dtype=torch.int64), torch.tensor(self.persons.index(person), dtype=torch.int64)
+		return self.transform(image).type(torch.float32), torch.tensor(self.categories.index(category), dtype=torch.int64), torch.tensor(self.persons.index(person), dtype=torch.int64)
 
 
 	def get_dataset(self):
 		try:
-			Logs(logging.INFO, f"Loading dataset {self.dataset_name}...")
 			dataset_file = f"libras_{self.dataset_name}_openpose.csv"
 			dataset_path = os.path.join(f"datasets/{self.dataset_name}", dataset_file)
-
 			return pd.read_csv(dataset_path, low_memory=True)
 		except FileNotFoundError as e:
 			Logs(logging.ERROR, f"Dataset {self.dataset_name} not found. Error: {e}")
@@ -54,11 +51,11 @@ class Data(Dataset):
 	def get_features(self):
 		features = []
 
-		for idx in range(self.dataframe.shape[0]):
-			image, label, person = self[idx]
-			features.append({"index": idx, "X": image, "y": label, "person": person})
+		for index in range(self.dataframe.shape[0]):
+			image, label, person = self[index]
+			features.append({"X": image, "y": label, "person": person})
 
-		return features
+		return pd.DataFrame(features)
 
 
 	def get_signs(self, df):
@@ -97,11 +94,11 @@ class Data(Dataset):
 			y = self.normalize_axis(y)
 
 			data.append({
+				"x": x,
+				"y": y,
 				"video_name": video,
 				"category": category,
-				"person": person,
-				"x": x,
-				"y": y
+				"person": person
 			})
 
 		return pd.DataFrame.from_dict(data)

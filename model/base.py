@@ -6,7 +6,8 @@ class BaseModel(ABC):
     image_size: tuple
 
 
-    def __init__(self, num_classes: int):
+    def __init__(self, feat_dim:int, num_classes: int):
+        self.feat_dim = feat_dim
         self.num_classes = num_classes
 
 
@@ -26,6 +27,6 @@ class BaseModel(ABC):
 
 
     @staticmethod
-    def get_name(name):
+    def get_type(name):
         classes = {cls.name: cls for cls in BaseModel.__subclasses__()}
         return classes.get(name)

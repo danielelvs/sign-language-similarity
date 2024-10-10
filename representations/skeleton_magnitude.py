@@ -1,10 +1,10 @@
 import numpy as np
 from typing import Tuple
 
-from representations.base import BaseRepresentation
+from representations.base import BaseImageRepresentation
 
 
-class SkeletonMagnitudeRepresentation(BaseRepresentation):
+class SkeletonMagnitudeRepresentation(BaseImageRepresentation):
     name = "Skeleton-Magnitude"
 
 

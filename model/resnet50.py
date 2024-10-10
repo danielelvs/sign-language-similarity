@@ -5,7 +5,7 @@ from model.base import BaseModel
 
 
 class Resnet50Model(BaseModel):
-    name = "resnet50"
+    name = "Resnet50"
     model = None
     transforms = None
     image_size = (224, 224)

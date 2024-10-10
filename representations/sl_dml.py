@@ -1,9 +1,9 @@
 import numpy as np
 
-from representations.base import BaseRepresentation
+from representations.base import BaseImageRepresentation
 
 
-class SLDMLRepresentation(BaseRepresentation):
+class SLDMLRepresentation(BaseImageRepresentation):
     name = "SL-DML"
 
 
