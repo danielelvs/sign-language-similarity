@@ -1,109 +1,143 @@
+import logging
 import random
 import numpy as np
+import pandas as pd
+import os
 import torch
-from data.data import Data
-from loaders.eval import EvalDataset
-from loaders.train import TrainDataset
-from models.siamese import Siamese
-from steps.evaluator import Evaluator
-from steps.train import Train
-from steps.transform import Transform
-from utils.loss import ContrastiveLoss
-from utils.params import Params
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from torch import optim
-import time
-import numpy as np
-import torch
+
 from data.data import Data
-from loaders.eval import EvalDataset
-from loaders.train import TrainDataset
-from models.siamese import Siamese
-from steps.evaluator import Evaluator
-from steps.train import Train
+from data.evaluate import EvaluateData
+from data.training import TrainingData
+from execution.evaluate import Evaluate
+from execution.trainining import Training
+from model.base import BaseModel
+from model.resnet18 import Resnet18Model
+from representations.base import BaseImageRepresentation
+from utils.arguments import ArgumentsParser
+from utils.logs import Logs
 from utils.loss import ContrastiveLoss
-from utils.params import Params
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
-from torch import optim
 
 
 def main():
-  dataset_name = "ufop" #vir por params
-  data_name = f"libras_{dataset_name}_openpose.csv"
+    # load arguments
+    args = ArgumentsParser().parse_args()
+    seed = args.random_seed
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    learning_rate = args.learning_rate
+    epochs = 1000 #args.epochs
+    batch_size = args.batch_size
+    # shuffle_data = args.shuffle_data
+    num_workers = args.num_workers
+    num_runs = args.num_runs
+    # feat_dim = args.feat_dim
+    k_shot = 1 #args.k_shot
+    model_name = "Resnet18" #args.model_name
+    dataset_name = 'ufop' #args.dataset_name
+    image_representation = args.image_representation
 
-  data_path = os.path.join("data", dataset_name)
-  if not os.path.exists(data_path):
-    os.mkdir(data_path)
-
-  data_csv = pd.read_csv(f'{data_path}/{data_name}')
-
-  _transformation = Transform(data_csv)
-  print(_transformation)
-
-  # ###############
-
-  # params = Params().args
-
-  # SEED = params.random_seed
-  # torch.manual_seed(SEED)
-  # np.random.seed(SEED)
-  # random.seed(SEED)
-
-  # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-  # feat_dim = 128 #params.feat_dim
-  # learning_rate = params.learning_rate
-  # epochs = params.epochs
-  # batch_size = params.batch_size
-  # shuffle_data = params.shuffle_data
-  # num_workers = params.num_workers
-  # num_runs = params.num_runs
-  # feat_dim = params.feat_dim
-  # k_shot = params.k_shot
-  # model_name = params.model_name
-
-  # data = Data()
-  # X_train, y_train, X_val, y_val, X_test, y_test = data.split()
-  # data.samples(y_train=y_train, y_val=y_val, y_test=y_test)
-
-  # transformation = transforms.Compose([transforms.Resize((100, 100))])
-
-  # train_dataset = TrainDataset(X=X_train, y=y_train, transform=transformation)
-  # train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=num_workers, batch_size=batch_size)
-
-  # val_dataset = EvalDataset(X=X_val, y=y_val, transform=transformation)
-  # val_dataloader = DataLoader(val_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
-
-  # test_dataset = EvalDataset(X=X_test, y=y_test, transform=transformation)
-  # test_dataloader = DataLoader(test_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
-
-  # model = Siamese(feat_dim=feat_dim).to(device)
-  # criterion = ContrastiveLoss()
-  # optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
 
-  # # treinamento
-  # train_evaluator = Evaluator(labels=y_val, k_shot=k_shot, num_runs=num_runs, device=device)
-  # best_epoch, best_accuracy, loss_history, accuracy_history = Train.execution(
-  #   model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, num_epochs=epochs, criterion=criterion, optimizer=optimizer, device=device, evaluator=train_evaluator, k_shot=k_shot)
-  # print(f"Best Epoch {best_epoch} Best Accuracy {best_accuracy:3f}")
-  # Train.chart(epochs, loss_history, accuracy_history)
+    # 1. Get Image Representation
+    Logs(level=logging.INFO, message=f"1. Getting {image_representation} image representation...\n")
+    image_method = BaseImageRepresentation.get_type(image_representation)
+    if image_method is None:
+        Logs(level=logging.ERROR, message=f"Invalid image representation type.")
+        raise ValueError("Invalid image representation type.")
 
 
-  # # avaliação
-  # model.load_state_dict(torch.load("checkpoints/best-model.pth", weights_only=True))
-  # evaluator = Evaluator(labels=y_test, k_shot=k_shot, num_runs=num_runs, device=device)
-  # accuracy = evaluator.eval(model=model, dataloader=test_dataloader, k=k_shot)
-  # print(f"Accuracy: {accuracy}")
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.Grayscale(num_output_channels=3),  # Converte para 3 canais
+        transforms.ToTensor(),
+    ])
 
-  # avaliação
-  model.load_state_dict(torch.load("checkpoints/best-model.pth", weights_only=True))
-  evaluator = Evaluator(labels=y_test, k_shot=k_shot, num_runs=num_runs, device=device)
-  accuracy = evaluator.eval(model=model, dataloader=test_dataloader, k=k_shot)
-  print(f"Accuracy: {accuracy}")
 
+    # 2. Load Dataset
+    Logs(level=logging.INFO, message=f"2. Loading dataset {dataset_name}...\n")
+    data = Data(dataset_name=dataset_name, image_method=image_method, transform=transform)
+    if data is None:
+        Logs(level=logging.ERROR, message=f"Invalid dataset.")
+        raise ValueError("Invalid dataset.")
+
+
+    X, y, p = data.get_features()
+    num_features = len(np.unique(y))
+    print(num_features)
+
+    # 3. Load Model
+    # Logs(level=logging.INFO, message=f"3. Loading model {model_name}...\n")
+    # base_model = BaseModel.get_by_name(model_name)(num_features)
+    # model = base_model.get_model()
+    # if model is None:
+    #     Logs(level=logging.ERROR, message=f"Invalid model type.")
+    #     raise ValueError("Invalid model type.")
+
+    model = Resnet18Model(num_classes=num_features).to(device)
+    criterion = ContrastiveLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Split dataset
+    # X_train, y_train, X_val, y_val, X_test, y_test = data.split(X, y)
+    # data.samples(y_train, y_val, y_test)
+    # print(X_train.shape, y_train.shape, X_val.shape, y_val.shape, X_test.shape, y_test.shape)
+
+    # Supondo que X e y sejam arrays NumPy contendo as imagens e os rótulos
+    # Verifique a forma dos dados antes da divisão
+    print(f"Original X shape: {X.shape}, y shape: {y.shape}")
+
+    # Certifique-se de que os dados estão no formato correto
+    # X = (X * 255).astype(np.uint8)  # Converta para uint8 se necessário
+
+    # Definir as transformações
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.Grayscale(num_output_channels=3),  # Converte para 3 canais
+    ])
+
+    # Dividir os dados em conjuntos de treinamento, validação e teste
+    from sklearn.model_selection import train_test_split
+    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.4, random_state=42)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
+    # Verifique a forma dos dados após a divisão
+    print(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    print(f"X_val shape: {X_val.shape}, y_val shape: {y_val.shape}")
+    print(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+
+
+    ############################# DATASETS #############################
+
+    # treinamento
+    train_dataset = TrainingData(X=X_train, y=y_train, transform=None)
+    train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=num_workers, batch_size=batch_size)
+
+    # avaliação
+    eval_dataset = EvaluateData(X=X_val, y=y_val, transform=None)
+    eval_dataloader = DataLoader(eval_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
+
+    # teste
+    test_dataset = EvaluateData(X=X_test, y=y_test, transform=None)
+    test_dataloader = DataLoader(test_dataset, shuffle=False, num_workers=num_workers, batch_size=batch_size)
+
+    ############################# EXECUCOES #############################
+
+    # treinamento
+    train_evaluator = Evaluate(labels=y_val, k_shot=k_shot, num_runs=num_runs, device=device)
+
+    best_epoch, best_accuracy, best_loss_history, loss_history, accuracy_history = Training.exec(model=model,train_dataloader=train_dataloader,val_dataloader=eval_dataloader,num_epochs=epochs,criterion=criterion,optimizer=optimizer,device=device,evaluator=train_evaluator,k_shot=k_shot)
+    print(f"Best Epoch {best_epoch} Best Accuracy {best_accuracy:3f}")
+    Training.chart(epochs, loss_history, accuracy_history)
+
+    # avaliação
+    model.load_state_dict(torch.load("checkpoints/best-model.pth", weights_only=True))
+    evaluator = Evaluate(labels=y_test, k_shot=k_shot, num_runs=num_runs, device=device)
+    accuracy = evaluator.exec(model=model, dataloader=test_dataloader, k=k_shot)
+    print(f"Accuracy: {accuracy}")
 
 if __name__ == "__main__":
-  main()
+    main()

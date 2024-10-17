@@ -1,9 +1,9 @@
 import numpy as np
 
-from representations.base import BaseRepresentation
+from representations.base import BaseImageRepresentation
 
 
-class SkeletonDMLRepresentation(BaseRepresentation):
+class SkeletonDMLRepresentation(BaseImageRepresentation):
     name = "Skeleton-DML"
 
 

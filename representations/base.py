@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseRepresentation(ABC):
+class BaseImageRepresentation(ABC):
     name: str
 
 
@@ -11,6 +11,6 @@ class BaseRepresentation(ABC):
 
 
     @staticmethod
-    def get_by_name(name):
-        classes = {cls.name: cls for cls in BaseRepresentation.__subclasses__()}
+    def get_type(name):
+        classes = {cls.name: cls for cls in BaseImageRepresentation.__subclasses__()}
         return classes.get(name)

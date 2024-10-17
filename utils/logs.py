@@ -3,7 +3,15 @@ import logging
 
 class Logs:
 
-  def __init__(self, level: logging._Level, message: logging.message):
+  def __init__(self, level: int, message: str):
+
     super(Logs, self).__init__()
 
-    return logging.basicConfig(level=level, message=message, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
+    self.logger = logging.getLogger()
+    self.logger.setLevel(level)
+    self.logger.log(level, message)
+
+
+  def get_logger(self):
+    return self.logger

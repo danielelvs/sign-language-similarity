@@ -1,19 +1,19 @@
 import torch.nn as nn
 
-from networks.base import BaseNetwork
+from model.base import BaseModel
 
 
-class SiameseNetwork(nn.Module, BaseNetwork):
-    name = "siamese"
+class SiameseModel(nn.Module, BaseModel):
+    name = "Siamese"
     model = None
     transforms = None
     image_size = (100, 100)
 
 
-    def __init__(self, feat_dim=512):
-        super(SiameseNetwork, self).__init__()
+    def __init__(self, feat_dim=128):
+        super(SiameseModel, self).__init__()
 
-        self.model.cnn1 = nn.Sequential(
+        self.cnn1 = nn.Sequential(
             nn.Conv2d(1, 96, kernel_size=11, stride=4),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(3, stride=2),
@@ -26,8 +26,9 @@ class SiameseNetwork(nn.Module, BaseNetwork):
             nn.ReLU(inplace=True)
         ) # 1x1x384 for 100x100 input
 
-        self.model.fc1 = nn.Sequential(
-            nn.Linear(384, feat_dim),
+        self.fc1 = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(384, feat_dim)
         )
 
 
@@ -49,7 +50,7 @@ class SiameseNetwork(nn.Module, BaseNetwork):
 
 
     def get_fc_layer(self):
-        return self.model.fc1
+        return self.model.fc
 
 
     def get_transformers(self):
